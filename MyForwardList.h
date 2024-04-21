@@ -48,11 +48,14 @@ public:
         }
     }
 
-    MyForwardList(MyForwardList&& other) noexcept
-        : head_(other.head_), 
-        tail_(other.tail_), 
-        size_(other.size_)
-    {
+    MyForwardList(MyForwardList&& other) noexcept {
+        if (&other == nullptr) {
+            return;
+        }
+
+        head_ = other.head_;
+        tail_ = other.tail_;
+        size_ = other.size_;
         other.head_ = nullptr;
         other.tail_ = nullptr;
         other.size_ = 0;
@@ -68,14 +71,14 @@ public:
         Node* oCurrent = other.head_;
 
         while (oCurrent != nullptr) {
-            Node* newNode = new Node(oCurrent->data);
+            std::unique_ptr<Node> newNode = std::make_unique<Node>(oCurrent->data);
 
             if (head_ == nullptr) {
-                head_ = newNode;
+                head_ = newNode.release();
                 tail_ = head_;
             }
             else {
-                tail_->next = newNode;
+                tail_->next = newNode.release();
                 tail_ = tail_->next;
             }
 
@@ -87,7 +90,7 @@ public:
     }
 
     MyForwardList& operator=(MyForwardList&& other) noexcept {
-        if (this == &other) {
+        if (this == &other || &other == nullptr) {
             return *this;
         }
 
@@ -110,7 +113,7 @@ public:
         }
     }
 
-    size_t size() {
+    size_t size() const {
         return size_;
     }
 
@@ -119,26 +122,26 @@ public:
     }
 
     void push_front(const T& data) {
-        Node* newNode = new Node(data);
+        std::unique_ptr<Node> newNode = std::make_unique<Node>(data);
 
         if (head_ == nullptr) {
-            head_ = newNode;
+            head_ = newNode.release();
         } else {
             newNode->next = head_;
-            head_ = newNode;
+            head_ = newNode.release();
         }
 
         ++size_;
     }
 
     void push_back(const T& data) {
-        Node* newNode = new Node(data);
+        std::unique_ptr<Node> newNode = std::make_unique<Node>(data);
 
         if (head_ == nullptr) {
-            head_ = newNode;
+            head_ = newNode.release();
             tail_ = head_;
         } else {
-            tail_->next = newNode;
+            tail_->next = newNode.release();
             tail_ = tail_->next;
         }
 
@@ -180,6 +183,27 @@ public:
                 current = current->next;
             }
         }
+    }
+
+    bool operator==(const MyForwardList& other) const
+    {
+        if (size_ != other.size_) {
+            return false;
+        }
+
+        Node* current = head_;
+        Node* oCurrent = other.head_;
+
+        while (current != nullptr) {
+            if (current->data != oCurrent->data) {
+                return false;
+            }
+
+            current = current->next;
+            oCurrent = oCurrent->next;
+        }
+
+        return true;
     }
 
     class Iterator {
@@ -247,26 +271,5 @@ public:
         }
 
         return Iterator(nullptr);
-    }
-
-    bool operator==(const MyForwardList& other) const
-    {
-        if (size_ != other.size_) {
-            return false;
-        }
-
-        Node* current  = head_;
-        Node* oCurrent = other.head_;
-
-        while (current != nullptr) {
-            if (current->data != oCurrent->data) {
-                return false;
-            }
-
-            current = current->next;
-            oCurrent = oCurrent->next;
-        }
-
-        return true;
     }
 };
