@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#include <memory>
 
 
 template <class T>
@@ -213,11 +213,15 @@ public:
 
 
         T& operator*() {
+            assertNode();
+
             return node->data;
         }
 
 
         Iterator& operator++() {
+            assertNode();
+
             node = node->next;
 
             return *this;
